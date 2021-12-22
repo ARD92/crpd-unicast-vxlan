@@ -1,11 +1,10 @@
 /*
-Custom Yang model to load Unicast VXLAN config
-for ATT DNI service. Configuring static vxlan
-tunnels while existing in vMX and MX, it does 
-not exist today in cRPD. This Yang model will 
-allow one to configure the same as a stop gap
-solution until engineering natively adds DDL
-support.
+Custom Yang model to load Unicast VXLAN config. 
+Configuring static vxlan tunnels while existing
+in vMX and MX, it does not exist today in cRPD. 
+This Yang model will allow one to configure the
+same as a stop gap solution until natively available. 
+
 
 Version: 1.0 
 Date: 08-03-2021  
