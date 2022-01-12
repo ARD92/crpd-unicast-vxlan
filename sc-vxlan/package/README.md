@@ -12,3 +12,5 @@ The below files are not used
     load set /var/opt/unicast-vxlan/base-crpd-config
     commit
     ```
+
+ensure juniper.conf is present in main-crpd-config volume mount before starting. This makes sure all configs would be present at start up

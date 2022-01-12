@@ -27,11 +27,12 @@ __author__ = "Aravind Prabhakar"
 #  Description  : Config script for handling unicast vxlan yang model
 #                 This would be a stopgap solution until the feature 
 #                 comes in natively within cRPD. Log will be saved under 
-#                 /var/log/unicast-vxlan.log
+#                 /var/log/unicast-vxlan/unicast-vxlan.log
 
 # 1.2 update
-# - reprogramming of kernel interfaces
-# - added docker-compose packaging
+# - reprogramming of kernel interfaces in case of reboot/crash
+# - ability to configure vxlan intf into VRFs
+# - added docker-compose packaging removing install.sh dependency
 
 import os
 import sys
@@ -76,36 +77,63 @@ def find(xml):
 
     # deleting from top level hierarchy
     try:
-        if root["vxlan"] == "":
-            delVxlan("all")
+        if "vxlan" in root.keys():
+            if root["vxlan"] == "":
+                delVxlan("all")
 
-        # single element handling
-        elif isinstance(root['vxlan']['interface'],dict) and root['vxlan'] != "":
-            if len(root['vxlan']['interface']) > 1:
-                vxlanname = root['vxlan']['interface']['name']
-                vni = root['vxlan']['interface']['vni']
-                remoteip = root['vxlan']['interface']['remote-ip']
-                ipprefix = root['vxlan']['interface']['ip-prefix']
-                underlayintf = root['vxlan']['interface']['interface']
-                dstport = root['vxlan']['interface']['destination-port']
-                addVxlan(vxlanname, vni, ipprefix, remoteip, underlayintf, dstport)
-            else:
-                delVxlan(root['vxlan']['interface']['name'])
-
-        # multiple element handling
-        elif isinstance(root['vxlan']['interface'],list):
-            for i in root['vxlan']['interface']:
-                if len(i) > 1:
-                    vxlanname = i['name']
-                    vni = i['vni']
-                    remoteip = i['remote-ip']
-                    ipprefix = i['ip-prefix']
-                    underlayintf = i['interface']
-                    dstport = i['destination-port']
+            # single element handling
+            elif isinstance(root['vxlan']['interface'],dict) and root['vxlan'] != "":
+                if len(root['vxlan']['interface']) > 1:
+                    vxlanname = root['vxlan']['interface']['name']
+                    vni = root['vxlan']['interface']['vni']
+                    remoteip = root['vxlan']['interface']['remote-ip']
+                    ipprefix = root['vxlan']['interface']['ip-prefix']
+                    underlayintf = root['vxlan']['interface']['interface']
+                    dstport = root['vxlan']['interface']['destination-port']
                     addVxlan(vxlanname, vni, ipprefix, remoteip, underlayintf, dstport)
                 else:
-                    delVxlan(i['name'])
+                    delVxlan(root['vxlan']['interface']['name'])
 
+            # multiple element handling
+            elif isinstance(root['vxlan']['interface'],list):
+                for i in root['vxlan']['interface']:
+                    if len(i) > 1:
+                        vxlanname = i['name']
+                        vni = i['vni']
+                        remoteip = i['remote-ip']
+                        ipprefix = i['ip-prefix']
+                        underlayintf = i['interface']
+                        dstport = i['destination-port']
+                        addVxlan(vxlanname, vni, ipprefix, remoteip, underlayintf, dstport)
+                    else:
+                        delVxlan(i['name'])
+
+        # config occuring along with other stanzas
+        if "configuration" in root.keys():
+            if isinstance(root['configuration']['vxlan']['interface'], dict):
+                if len(root['configuration']['vxlan']['interface']) > 1:
+                    vxlanname = root['configuration']['vxlan']['interface']['name']
+                    vni = root['configuration']['vxlan']['interface']['vni']
+                    remoteip = root['configuration']['vxlan']['interface']['remote-ip']
+                    ipprefix = root['configuration']['vxlan']['interface']['ip-prefix']
+                    underlayintf = root['configuration']['vxlan']['interface']['interface']
+                    dstport = root['configuration']['vxlan']['interface']['destination-port']
+                    addVxlan(vxlanname, vni, ipprefix, remoteip, underlayintf, dstport)
+                else:
+                    delVxlan(root['configuration']['vxlan']['interface']['name'])
+
+            elif isinstance(root['configuration']['vxlan']['interface'],list):
+                for i in root['configuration']['vxlan']['interface']:
+                    if len(i) > 1:
+                        vxlanname = i['name']
+                        vni = i['vni']
+                        remoteip = i['remote-ip']
+                        ipprefix = i['ip-prefix']
+                        underlayintf = i['interface']
+                        dstport = i['destination-port']
+                        addVxlan(vxlanname, vni, ipprefix, remoteip, underlayintf, dstport)
+                    else:
+                        delVxlan(i['name']) 
     except KeyError:
         logging.info("blank commit occured, passing")
 """
