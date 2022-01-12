@@ -1,6 +1,8 @@
-#----------------------#
-# setup unicast-vxlan  #
-#----------------------#
+#----------------------------------#
+# setup unicast-vxlan  
+# This is not needed since it has 
+# been handled at startup
+#----------------------------------#
 
 # Install required packages 
 apt-get update
@@ -17,16 +19,18 @@ pip3 install pyroute2
 #cp run-mqtt /etc/runit/mqtt/run
 #chmod +x /etc/runit/mqtt
 #ln -s /etc/runit/mqtt/ /etc/service/mqtt
-
 /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf &
 /usr/libexec/ui-pubd -N &
-
-cp unicast-vxlan.py /var/db/scripts/jet
-chmod +x /var/db/scripts/jet/unicast-vxlan.py
+#cp unicast-vxlan.py /var/db/scripts/jet
+#chmod +x /var/db/scripts/jet/unicast-vxlan.py
+chmod +x unicast-vxlan.py
 mkdir -p /etc/runit/unicast-vxlan/
 cp run-unicast-vxlan /etc/runit/unicast-vxlan/run
 chmod +x /etc/runit/unicast-vxlan/run
 ln -s /etc/runit/unicast-vxlan/ /etc/service/unicast-vxlan
+
+# load basic config
+cli -c "configure;load set basic-crpd-config; commit; exit"
 
 # load yang package
 /usr/libexec/ui/yang-pkg add -i vxlan -m unicast-vxlan.yang -norestart

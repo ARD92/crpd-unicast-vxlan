@@ -1,13 +1,13 @@
 /*
-Custom Yang model to load Unicast VXLAN config. 
+Custom Yang model to load Unicast VXLAN config.
 Configuring static vxlan tunnels while existing
-in vMX and MX, it does not exist today in cRPD. 
-This Yang model will allow one to configure the
-same as a stop gap solution until natively available. 
+in vMX and MX, it does not exist today in cRPD.
+ This Yang model will allow one to configure the
+ same as a stop gap solution until engineering 
+natively adds DDL support.
 
-
-Version: 1.0 
-Date: 08-03-2021  
+Version: 1.2 
+Date: 01-11-2022  
 
 Example 
 set vxlan interface vxlan100 interface ens3 ip-prefix 1.1.1.1/30 remote-ip 1.1.1.2 vni 100 destination-port 4789

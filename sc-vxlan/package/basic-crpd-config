@@ -1,0 +1,5 @@
+set system root-authentication encrypted-password "$6$pQMfq$5q.k5WYcJhEzX5VRhXusAe/fwb9n9MRKN3HvhN3If/2Z.QELP41buLxz5JToB.I.cDYPj0v2dIoIAPo9kMCEv."
+set system commit xpath
+set system commit constraints direct-access
+set system commit notification configuration-diff-format xml
+set system scripts language python3

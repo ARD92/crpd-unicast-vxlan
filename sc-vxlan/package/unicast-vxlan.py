@@ -22,13 +22,16 @@ __author__ = "Aravind Prabhakar"
 #
 
 #  Author       : aprabh@juniper.net                                      
-#  Version      : 1.0                                                    
-#  Date         : 2021-08-10                                               
+#  Version      : 1.2                                                    
+#  Date         : 2022-01-11                                               
 #  Description  : Config script for handling unicast vxlan yang model
 #                 This would be a stopgap solution until the feature 
 #                 comes in natively within cRPD. Log will be saved under 
 #                 /var/log/unicast-vxlan.log
 
+# 1.2 update
+# - reprogramming of kernel interfaces
+# - added docker-compose packaging
 
 import os
 import sys
@@ -48,8 +51,13 @@ MQTT_HOST = ""
 MQTT_TIMEOUT = 10
 INTF = {}
 
+if not os.path.isdir("/var/log/unicast-vxlan"):
+    logging.info("directory does not exist. creating logging dir")
+    os.mkdir("/var/log/unicast-vxlan")
+
+log_filename = "/var/log/unicast-vxlan/unicast-vxlan.log"
 Logrotate = logging.handlers.RotatingFileHandler(
-    filename='/var/log/unicast-vxlan.log',
+    filename=log_filename,
     mode='a',
     maxBytes=10240,
     backupCount=10,
@@ -122,8 +130,8 @@ def addVxlan(ifname, vni, prefix, remoteip, underlayintf, dstport):
     os.popen('bridge fdb append to 00:00:00:00:00:00 dst {} dev {}'.format(remoteip, ifname))
 
     # persist information in case script restarts to bring data back into memory
-    INTF[ifname] = vni
-    with open('/var/db/INTF-STORE.json','w') as f2:
+    INTF[ifname] = [ vni, prefix, remoteip, underlayintf, dstport ]
+    with open('/var/log/unicast-vxlan/INTF-STORE.json','w') as f2:
         f2.write(json.dumps(INTF, indent=4))
 
 """
@@ -145,7 +153,7 @@ def delVxlan(ifname):
             os.popen('ip link del {}'.format(ifname))
             INTF.pop(ifname)
 
-        with open('/var/db/INTF-STORE.json','w') as f4:
+        with open('/var/log/unicast-vxlan/INTF-STORE.json','w') as f4:
             f4.write(json.dumps(INTF, indent=4))
 
     except Error as e:
@@ -170,6 +178,19 @@ def process_payload(commit_data):
         logging.debug(data)
         find(data)
 
+def reprogramKernel(kdata):
+    """
+    Reprogram kernel in case container is stopped
+    but same persistent configs are going to be used
+    """
+    logging.debug(50*'-')
+    logging.debug(kdata)
+    logging.debug(50*'-')
+    for data in kdata:
+        logging.info("reprogramming interface {}".format(data))
+        logging.debug(data, kdata[data])
+        addVxlan(data, kdata[data][0], kdata[data][1], kdata[data][2], kdata[data][3], kdata[data][4])
+    
 def run():
     global INTF
     client = mqtt.Client()
@@ -179,17 +200,22 @@ def run():
     print("connected to ",MQTT_IP)
     try:
         if not INTF:
-            with open('/var/db/INTF-STORE.json') as f0:
+            with open('/var/log/unicast-vxlan/INTF-STORE.json') as f0:
                 fdata = json.load(f0)
             if fdata:
                 INTF = fdata
+                logging.debug("reprogramming data")
+                logging.debug("50*'-'")
+                logging.debug(INTF)
+                # reprogram kernel interfaces at startup if any exists
+                reprogramKernel(INTF)
     except:
-        f2 = open('/var/db/INTF-STORE.json','a+')
+        logging.debug("entering except block")
+        f2 = open('/var/log/unicast-vxlan/INTF-STORE.json','a+')
         f2.close()
         pass
 
     client.loop_forever()
-
 
 if __name__ == '__main__':
     run()
