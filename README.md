@@ -46,16 +46,56 @@ OpenSSL version: OpenSSL 1.1.1f  31 Mar 2020
 ```
 
 ## Load the cRPD docker image
+Note that tag might be different on the version you intend to load. The docker file has to use this cRPD image. currently it is used as `crpd:latest`. Change accordingly if needed.
+
 ```
-docker load -i <latest crpd image>
+docker load -i crpd:21.3-20210331.421
 ```
 
 ## git clone the package
 ```
-git clone <package>
+git clone --branch v1.2-docker-compose https://github.com/aprabh92/crpd-unicast-vxlan.git
 ```
 
 ## Start the container using the docker-compose files added
 ```
 docker-compose up -d --build
 ```
+
+The above command will build the container and start it. Once started please verify if the processes are running. The package itself is included in the directory `/var/opt/unicast-vxlan`
+
+```
+root@acf436c2d929:/# ls -l /var/opt/unicast-vxlan/
+total 24
+-rwxr-xr-x 1 root root  313 Jan 12 13:44 basic-crpd-config
+-rw-r--r-- 1 root root   87 Jan 12 13:44 load-config.sh
+-rwxr-xr-x 1 root root 9697 Jan 12 13:44 unicast-vxlan.py
+-rwxr-xr-x 1 root root 2800 Jan 12 13:44 unicast-vxlan.yang
+```
+
+### Verify processes
+Below processes are must without which the package may not function as expected 
+
+```
+root@acf436c2d929:/# sv status unicast-vxlan
+run: unicast-vxlan: (pid 100) 433s
+root@acf436c2d929:/# sv status uipubd
+run: uipubd: (pid 104) 437s
+root@acf436c2d929:/# sv status mosquitto
+run: mosquitto: (pid 102) 446s
+
+root@acf436c2d929:/# ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root        89  0.0  0.0   4408   816 ?        Ss   16:05   0:00 runsv uipubd
+root        90  0.0  0.0   4408   816 ?        Ss   16:05   0:00 runsv mosquitto
+root        91  0.0  0.0   4408   768 ?        Ss   16:05   0:00 runsv unicast-vxlan
+root       100  0.0  0.0  81100 23612 ?        S    16:05   0:00 python3 /var/opt/unicast-vxlan/unicast-vxlan.py
+root       101  0.0  0.0   4408   788 ?        Ss   16:05   0:00 runsv ppmd
+nobody     102  1.5  0.0  53932 14288 ?        S    16:05   0:07 /usr/sbin/mosquitto -c /etc/mosquitto/mosquitto.conf
+root       103  0.0  0.0   4408   784 ?        Ss   16:05   0:00 runsv mgd
+root       104  0.0  0.0 782104  7288 ?        S    16:05   0:00 /usr/libexec/ui-pubd -N
+```
+
+## Configuration examples
+For examples for configuring VXLAN tunnels , refer to document [test-configs](./test-configs.md)
+
