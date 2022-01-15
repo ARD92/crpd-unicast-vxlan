@@ -56,9 +56,8 @@ if not os.path.isdir("/var/log/unicast-vxlan"):
     logging.info("directory does not exist. creating logging dir")
     os.mkdir("/var/log/unicast-vxlan")
 
-log_filename = "/var/log/unicast-vxlan/unicast-vxlan.log"
 Logrotate = logging.handlers.RotatingFileHandler(
-    filename=log_filename,
+    filename="/var/log/unicast-vxlan/unicast-vxlan.log",
     mode='a',
     maxBytes=10240,
     backupCount=10,
