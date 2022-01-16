@@ -93,7 +93,7 @@ def find(xml):
                 else:
                     delVxlan(root['vxlan']['interface']['name'])
 
-            # multiple element handling
+            # multiple elements handling
             elif isinstance(root['vxlan']['interface'],list):
                 for i in root['vxlan']['interface']:
                     if len(i) > 1:
@@ -109,7 +109,12 @@ def find(xml):
 
         # config occuring along with other stanzas
         if "configuration" in root.keys():
-            if isinstance(root['configuration']['vxlan']['interface'], dict):
+            # delete from top level hierarchy
+            if root['configuration']['vxlan'] == "":
+                delVxlan("all")
+
+            #single element handling
+            elif isinstance(root['configuration']['vxlan']['interface'], dict) and root['configuration']['vxlan'] != "":
                 if len(root['configuration']['vxlan']['interface']) > 1:
                     vxlanname = root['configuration']['vxlan']['interface']['name']
                     vni = root['configuration']['vxlan']['interface']['vni']
@@ -121,6 +126,7 @@ def find(xml):
                 else:
                     delVxlan(root['configuration']['vxlan']['interface']['name'])
 
+            #multiple elements handling
             elif isinstance(root['configuration']['vxlan']['interface'],list):
                 for i in root['configuration']['vxlan']['interface']:
                     if len(i) > 1:
