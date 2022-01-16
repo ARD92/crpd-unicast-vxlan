@@ -99,3 +99,55 @@ root       104  0.0  0.0 782104  7288 ?        S    16:05   0:00 /usr/libexec/ui
 ## Configuration examples
 For examples for configuring VXLAN tunnels , refer to document [test-configs](./test-configs.md)
 
+## Troubleshooting 
+- verify if all necessary processes are running which are needed for the package. They are listed in the above section.
+- Every interface configured is stored in a JSON file which is tracked. Ensure if the configuration made it to the json file. The file is stored under `/var/log/unicast-vxlan/INTF-STORE.json` 
+- debug logs are enabled and will be rotated. These are also stored under `/var/log/unicast-vxlan/unicast-vxlan.log`.
+
+### Example of INTF.json
+```
+root@acf436c2d929# run show log unicast-vxlan/INTF-STORE.json
+{
+    "VX100": [
+        "100",
+        "10.10.1.1/30",
+        "10.1.1.1",
+        "eth0",
+        "4788"
+    ],
+    "VX200": [
+        "200",
+        "20.1.1.1/30",
+        "20.10.1.1",
+        "eth0",
+        "4888"
+    ],
+    "VX300": [
+        "300",
+        "30.1.1.1/30",
+        "30.10.1.1",
+        "eth0",
+        "4889"
+    ]
+}
+```
+
+### Example of unicast-vxlan.log
+```
+root@acf436c2d929# run show log unicast-vxlan/unicast-vxlan.log
+< ----------- snipped ------------- >
+}"}(name)s - DEBUG - {'vxlan': {'interface': [{'destination-port': '4888',
+                          'interface': 'eth0',
+                          'ip-prefix': '20.1.1.1/30',
+                          'name': 'VX200',
+                          'remote-ip': '20.10.1.1',
+                          'vni': '200'},
+                         {'destination-port': '4889',
+                          'interface': 'eth0',
+                          'ip-prefix': '30.1.1.1/30',
+                          'name': 'VX300',
+                          'remote-ip': '30.10.1.1',
+                          'vni': '300'}]}}
+{'name': 'root', 'msg': 'Adding vxlan interface VX200', 'args': (), 'levelname': 'INFO', 'levelno': 20, 'pathname': '/var/opt/unicast-vxlan/unicast-vxlan.py', 'filename': 'unicast-vxlan.py', 'module': 'unicast-vxlan', 'exc_info': None, 'exc_text': None, 'stack_info': None, 'lineno': 154, 'funcName': 'addVxlan', 'created': 1642295248.6011317, 'msecs': 601.1316776275635, 'relativeCreated': 32503835.15739441, 'thread': 139839688611648, 'threadName': 'MainThread', 'processName': 'MainProcess', 'process': 100, 'message': 'Adding vxlan interface VX200'}(name)s - INFO - Adding vxlan interface VX200
+{'name': 'root', 'msg': 'Adding vxlan interface VX300', 'args': (), 'levelname': 'INFO', 'levelno': 20, 'pathname': '/var/opt/unicast-vxlan/unicast-vxlan.py', 'filename': 'unicast-vxlan.py', 'module': 'unicast-vxlan', 'exc_info': None, 'exc_text': None, 'stack_info': None, 'lineno': 154, 'funcName': 'addVxlan', 'created': 1642295248.6100788, 'msecs': 610.0788116455078, 'relativeCreated': 32503844.104528427, 'thread': 139839688611648, 'threadName': 'MainThread', 'processName': 'MainProcess', 'process': 100, 'message': 'Adding vxlan interface VX300'}(name)s - INFO - Adding vxlan interface VX300
+``` 
