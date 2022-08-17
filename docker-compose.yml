@@ -1,0 +1,13 @@
+version: "3.0"
+services:
+  crpd:
+    build: .
+    image: crpd-vxlan:latest
+    privileged: true
+    container_name: crpd-vxlan
+    restart: unless-stopped
+    #network_mode: "host"
+    volumes:
+      - ./main-crpd-config:/config
+      - ./main-crpd-log:/var/log
+    entrypoint: sh /sbin/runit-init.sh 
